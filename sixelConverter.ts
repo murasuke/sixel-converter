@@ -8,7 +8,7 @@
  * Sixelグラフィックスの文字列に変換します
  *
  * 使用方法:
- *   node sixelConverter.js <image-file>
+ *   npx tsx sixelConverter.ts <image-file> [-d]
  *
  * 依存モジュール: node-canvas
  *
@@ -169,7 +169,7 @@ function convertToSixel(
 async function main(): Promise<void> {
   const filename: string | undefined = process.argv[2];
   if (!filename) {
-    console.error('Usage: node sixelConverter.ts <image-file>');
+    console.error('Usage: npx tsx sixelConverter.ts <image-file>');
     process.exit(1);
   }
   try {
