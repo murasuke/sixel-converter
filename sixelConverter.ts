@@ -1,11 +1,11 @@
 /**
  * @file sixelConverter.ts
  *
- * 指定した画像ファイルを読み込み、(Sixelグラフィックスを用いて)ターミナルへ画像を表示します
+ * 画像を読み込み、ターミナルへ(Sixelグラフィックスを用いて)表示します
  *
- * 指定した画像ファイルを読み込み、node-canvas を使って画像のピクセルデータを取得します。
- * 次に、各ピクセルの色を減色（Webセーフカラー216色）し、
- * Sixelグラフィックスの文字列に変換します
+ * - 指定した画像ファイルを読み込み、node-canvas を使って画像のピクセルデータを取得
+ * - 各ピクセルの色を減色(Webセーフカラー216色)
+ * - Sixelグラフィックス(エスケープシーケンス)文字列に変換
  *
  * 使用方法:
  *   npx tsx sixelConverter.ts <image-file> [-d]
@@ -16,6 +16,39 @@
  */
 
 import { loadImage, createCanvas, Image } from 'canvas';
+
+/**
+ * メイン処理:
+ * コマンドライン引数から画像ファイルのパスを取得し、
+ * 画像の読み込み、減色、Sixel変換を順次実行します。
+ */
+async function main(): Promise<void> {
+  const filename: string | undefined = process.argv[2];
+  if (!filename) {
+    console.error('Usage: npx tsx sixelConverter.ts <image-file>');
+    process.exit(1);
+  }
+
+  try {
+    // 画像読み込みとピクセルデータ取得
+    const { data, img } = await imageLoader(filename);
+    // 減色処理: 各ピクセルの色を減色して、パレット番号に変換する
+    const { colorData, colorMap } = reductionColor(data, img.width, img.height);
+    // Sixelグラフィックス(エスケープシーケンス)文字列に変換
+    const sixel = convertToSixel(colorData, colorMap, img.width, img.height);
+    // コンソールに表示
+    console.log(sixel);
+
+    // デバッグ用: エスケープシーケンスを可視化する場合は下記を使用
+    if (process.argv[3] === '-d') {
+      console.log(colorData);
+      console.log(colorMap);
+      console.log(sixel.replaceAll('\x1B', '\\x1B'));
+    }
+  } catch (error) {
+    console.error('Error processing image:', error);
+  }
+}
 
 /**
  * 画像ファイルを読み込み、Canvas に描画してピクセルデータを取得する非同期関数
@@ -159,36 +192,6 @@ function convertToSixel(
   }
   output += ESC + '\\'; // Sixel終了シーケンス
   return output;
-}
-
-/**
- * メイン処理:
- * コマンドライン引数から画像ファイルのパスを取得し、
- * 画像の読み込み、減色、Sixel変換を順次実行します。
- */
-async function main(): Promise<void> {
-  const filename: string | undefined = process.argv[2];
-  if (!filename) {
-    console.error('Usage: npx tsx sixelConverter.ts <image-file>');
-    process.exit(1);
-  }
-  try {
-    // 画像読み込みとピクセルデータ取得
-    const { data, img } = await imageLoader(filename);
-    // 減色処理: 各ピクセルの色を減色して、パレット番号に変換する
-    const { colorData, colorMap } = reductionColor(data, img.width, img.height);
-    // Sixelグラフィックスの文字列へ変換
-    const sixel = convertToSixel(colorData, colorMap, img.width, img.height);
-    console.log(sixel);
-    // デバッグ用: エスケープシーケンスを可視化する場合は下記を使用
-    if (process.argv[3] === '-d') {
-      console.log(colorData);
-      console.log(colorMap);
-      console.log(sixel.replaceAll('\x1B', '\\x1B'));
-    }
-  } catch (error) {
-    console.error('Error processing image:', error);
-  }
 }
 
 // メイン処理の実行
