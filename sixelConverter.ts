@@ -97,8 +97,8 @@ function reductionColor(
   const colorData = new Uint32Array(width * height);
   // 色を一意に識別するための Map (RGB値 -> パレット番号)
   const colorMap = new Map<number, number>();
-  const quantize = 51; // 0, 51, 102, ... ,255 の6段階に丸める（216色セーフカラー）
-  const scaleFactor = 0.56; // 各色成分を見た目に近い形へ調整(明るさを抑える。値は目視で適当に調整)
+  const scaleFactor = 1 / 2.3; // sixelでは0～100の範囲で指定する(2.55だと少しくらいため微調整)
+  const quantize = 16; // 0～100を6段階に(RGBで216色)分割する場合の量子化ステップ(100/6=約16)
 
   for (let i = 0; i < width * height; i++) {
     const offset = i * 4;
